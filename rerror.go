@@ -9,8 +9,6 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
-const RETRIES = 100
-
 type Log struct {
 	UUID     string `json:"uuid"`
 	Code     int    `json:"code"`
