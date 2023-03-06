@@ -4,6 +4,7 @@ import "strings"
 
 const (
 	GORM_DUPLICATE_KEY string = "duplicate key value violates unique constraint"
+	GORM_RECORD_NOT_FOUND string = "record not found"
 )
 
 func Is(err error, kargs ...string) bool {
