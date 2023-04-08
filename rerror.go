@@ -4,37 +4,36 @@ import (
 	"encoding/json"
 	"fmt"
 	"runtime"
+	"time"
 
 	"github.com/google/uuid"
-	"google.golang.org/grpc/codes"
 )
 
 type Log struct {
-	UUID     string `json:"uuid"`
-	Code     int    `json:"code"`
-	Severity string `json:"severity"`
-	Path     string `json:"path"`
-	Line     int    `json:"line"`
-	Message  string `json:"message"`
+	Timestamp string `json:"timestamp"`
+	UUID      string `json:"uuid"`
+	Status    int    `json:"status"`
+	Severity  string `json:"severity"`
+	Path      string `json:"path"`
+	Line      int    `json:"line"`
+	Message   string `json:"message"`
 }
 
 type Error struct {
 	UUID    string
-	HTTP    int
-	RPC     codes.Code
 	Message string
 }
 
-func LogF(code int, format string, args ...any) *Log {
+func LogF(status int, format string, args ...any) *Log {
 	var log = new(Log)
 
 	var severity string
 
-	if code < 400 {
+	if status < 400 {
 		severity = "INFO"
-	} else if code >= 400 && code < 500 {
+	} else if status >= 400 && status < 500 {
 		severity = "WARNING"
-	} else if code >= 500 && code < 600 {
+	} else if status >= 500 && status < 600 {
 		severity = "ERROR"
 	} else {
 		severity = "CRITICAL"
@@ -43,7 +42,8 @@ func LogF(code int, format string, args ...any) *Log {
 	_, path, line, _ := runtime.Caller(2)
 
 	log.UUID = uuid.NewString()
-	log.Code = code
+	log.Status = status
+	log.Timestamp = time.Now().UTC().Format(time.RFC3339Nano)
 	log.Path = path
 	log.Line = line
 	log.Message = fmt.Sprintf(format, args...)
@@ -55,12 +55,12 @@ func LogF(code int, format string, args ...any) *Log {
 	return log
 }
 
-func ErrorF(http int, rpc codes.Code, format string, args ...any) *Error {
-	var l = LogF(http, format, args...)
+func ErrorF(status int, format string, args ...any) *Error {
+	var l = LogF(status, format, args...)
 
-	if l.Code >= 500 {
-		return &Error{UUID: l.UUID, HTTP: http, RPC: rpc, Message: "internal"}
+	if l.Status >= 500 {
+		return &Error{UUID: l.UUID, Message: "internal error"}
 	}
 
-	return &Error{UUID: l.UUID, HTTP: http, RPC: rpc, Message: l.Message}
+	return &Error{UUID: l.UUID, Message: l.Message}
 }
