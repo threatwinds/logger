@@ -21,6 +21,7 @@ type Log struct {
 
 type Error struct {
 	UUID    string
+	Status  int
 	Message string
 }
 
@@ -59,8 +60,8 @@ func ErrorF(status int, format string, args ...any) *Error {
 	var l = LogF(status, format, args...)
 
 	if l.Status >= 500 {
-		return &Error{UUID: l.UUID, Message: "internal error"}
+		return &Error{UUID: l.UUID, Status: status, Message: "internal error"}
 	}
 
-	return &Error{UUID: l.UUID, Message: l.Message}
+	return &Error{UUID: l.UUID, Status: status, Message: l.Message}
 }
