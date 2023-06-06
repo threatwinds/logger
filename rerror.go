@@ -24,7 +24,7 @@ type Error struct {
 	Tag     string `json:"tag"`
 }
 
-func LogF(status int, tag, format string, args ...any) *Log {
+func LogF(print bool, status int, tag, format string, args ...any) *Log {
 	var log = new(Log)
 
 	var severity string
@@ -50,14 +50,16 @@ func LogF(status int, tag, format string, args ...any) *Log {
 	log.Severity = severity
 	log.Tag = tag
 
-	j, _ := json.Marshal(log)
-	fmt.Println(string(j))
+	if print {
+		j, _ := json.Marshal(log)
+		fmt.Println(string(j))
+	}
 
 	return log
 }
 
-func ErrorF(status int, tag, format string, args ...any) *Error {
-	var l = LogF(status, tag, format, args...)
+func ErrorF(print bool, status int, tag, format string, args ...any) *Error {
+	var l = LogF(print, status, tag, format, args...)
 
 	if l.Status >= 500 {
 		return &Error{UUID: l.UUID, Status: status, Message: "internal error"}
