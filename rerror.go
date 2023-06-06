@@ -11,21 +11,20 @@ import (
 
 type Log struct {
 	Timestamp string `json:"timestamp"`
-	UUID      string `json:"uuid"`
-	Status    int    `json:"status"`
 	Severity  string `json:"severity"`
 	Path      string `json:"path"`
 	Line      int    `json:"line"`
-	Message   string `json:"message"`
+	Error
 }
 
 type Error struct {
-	UUID    string
-	Status  int
-	Message string
+	UUID    string `json:"uuid"`
+	Status  int    `json:"status"`
+	Message string `json:"message"`
+	Tag     string `json:"tag"`
 }
 
-func LogF(status int, format string, args ...any) *Log {
+func LogF(status int, tag, format string, args ...any) *Log {
 	var log = new(Log)
 
 	var severity string
@@ -49,6 +48,7 @@ func LogF(status int, format string, args ...any) *Log {
 	log.Line = line
 	log.Message = fmt.Sprintf(format, args...)
 	log.Severity = severity
+	log.Tag = tag
 
 	j, _ := json.Marshal(log)
 	fmt.Println(string(j))
@@ -56,8 +56,8 @@ func LogF(status int, format string, args ...any) *Log {
 	return log
 }
 
-func ErrorF(status int, format string, args ...any) *Error {
-	var l = LogF(status, format, args...)
+func ErrorF(status int, tag, format string, args ...any) *Error {
+	var l = LogF(status, tag, format, args...)
 
 	if l.Status >= 500 {
 		return &Error{UUID: l.UUID, Status: status, Message: "internal error"}
