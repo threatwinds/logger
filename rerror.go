@@ -62,8 +62,8 @@ func ErrorF(print bool, status int, tag, format string, args ...any) *Error {
 	var l = LogF(print, status, tag, format, args...)
 
 	if l.Status >= 500 {
-		return &Error{UUID: l.UUID, Status: status, Message: "internal error"}
+		return &Error{UUID: l.UUID, Status: status, Message: "internal error", Tag: l.Tag}
 	}
 
-	return &Error{UUID: l.UUID, Status: status, Message: l.Message}
+	return &Error{UUID: l.UUID, Status: status, Message: l.Message, Tag: l.Tag}
 }
