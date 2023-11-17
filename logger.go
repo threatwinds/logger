@@ -31,7 +31,7 @@ type Logger struct{
 // Config represents the configuration for the logger.
 type Config struct {
 	Format string // json, text
-	Level int // 100: DEBUG, 200: INFO, 300: NOTICE, 400: WARNING, 500: ERROR, 502: CRITICAL, 505: ALERT
+	Level int // 100: DEBUG, 200: INFO, 300: NOTICE, 400: WARNING, 500: ERROR, 502: CRITICAL, 509: ALERT
 }
 
 // New creates a new logger instance with the given configuration.
@@ -82,9 +82,9 @@ func (l Logger) LogF(statusCode int, format string, args ...any) *Log {
 		severity = "WARNING"
 	} else if statusCode >= 500 && statusCode < 502 {
 		severity = "ERROR"
-	} else if statusCode >= 502 && statusCode < 505 {
+	} else if statusCode >= 502 && statusCode < 509 {
 		severity = "CRITICAL"
-	} else if statusCode >= 505 && statusCode < 510 {
+	} else if statusCode >= 509 && statusCode < 511 {
 		severity = "ALERT"
 	} else {
 		severity = "DEFAULT"
