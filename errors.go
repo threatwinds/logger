@@ -1,20 +1,30 @@
-package rerror
+package logger
 
 import "strings"
 
-func EIs(err error, kargs ...string) bool {
-	for _, e := range kargs {
-		if strings.Contains(err.Error(), e) {
+// Error represents an error with a UUID, status, and message.
+type Error struct {
+	UUID    string `json:"uuid"`
+	Status  int    `json:"status"`
+	Message string `json:"message"`
+}
+
+// Is checks if the given error contains any of the specified substrings.
+// It returns true if any of the substrings are found, otherwise false.
+func Is(e error, kargs ...string) bool {
+	for _, arg := range kargs {
+		if strings.Contains(e.Error(), arg) {
 			return true
 		}
 	}
 	return false
 }
 
-
-func RIs(err *Error, kargs ...string) bool {
-	for _, e := range kargs {
-		if strings.Contains(err.Message, e) {
+// Is checks if the error's message contains any of the specified substrings.
+// It returns true if any of the substrings are found, otherwise false.
+func (e *Error) Is(kargs ...string) bool {
+	for _, arg := range kargs {
+		if strings.Contains(e.Message, arg) {
 			return true
 		}
 	}

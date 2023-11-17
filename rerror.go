@@ -1,4 +1,4 @@
-package rerror
+package logger
 
 import (
 	"encoding/json"
@@ -9,10 +9,12 @@ import (
 	"github.com/google/uuid"
 )
 
+// defaultConfig returns the default configuration for the logger.
 func defaultConfig() *Config {
 	return &Config{Format: "json", Level: 400}
 }
 
+// Log represents a log entry.
 type Log struct {
 	Timestamp string `json:"timestamp"`
 	Severity  string `json:"severity"`
@@ -21,21 +23,18 @@ type Log struct {
 	Error
 }
 
-type Error struct {
-	UUID    string `json:"uuid"`
-	Status  int    `json:"status"`
-	Message string `json:"message"`
-}
-
+// Logger represents a logger instance.
 type Logger struct{
 	cnf *Config
 }
 
+// Config represents the configuration for the logger.
 type Config struct {
 	Format string // json, text
 	Level int // 100: DEBUG, 200: INFO, 300: NOTICE, 400: WARNING, 500: ERROR, 502: CRITICAL, 505: ALERT
 }
 
+// New creates a new logger instance with the given configuration.
 func New(config *Config) *Logger{
 	var logger = new(Logger)
 	if config != nil {
@@ -55,15 +54,19 @@ func New(config *Config) *Logger{
 	return logger
 }
 
+// ToJSON converts the log entry to JSON formated string.
 func (l Log) ToJSON() string {
 	b, _ := json.Marshal(l)
 	return string(b)
 }
 
+// ToString converts the log entry to a string format.
 func (l Log) ToString() string {
 	return fmt.Sprintf("%s %s %s %s %d %s", l.Timestamp, l.Severity, l.UUID, l.Path, l.Line, l.Message)
 }
 
+// LogF logs a formatted message with the given status code and arguments.
+// It returns the log entry.
 func (l Logger) LogF(statusCode int, format string, args ...any) *Log {
 	var log = new(Log)
 
@@ -113,6 +116,8 @@ func (l Logger) LogF(statusCode int, format string, args ...any) *Log {
 	return log
 }
 
+// ErrorF logs an error message with the given status code and arguments.
+// It returns an error object.
 func (l Logger) ErrorF(statusCode int, format string, args ...any) *Error {
 	var log = l.LogF(statusCode, format, args...)
 

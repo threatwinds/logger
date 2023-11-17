@@ -1,4 +1,4 @@
-module github.com/threatwinds/rerror
+module github.com/threatwinds/logger
 
 go 1.21
 
