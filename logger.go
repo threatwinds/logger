@@ -3,15 +3,18 @@ package logger
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"path/filepath"
 	"runtime"
 	"time"
 
 	"github.com/google/uuid"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 // defaultConfig returns the default configuration for the logger.
 func defaultConfig() *Config {
-	return &Config{Format: "json", Level: 400}
+	return &Config{Format: "json", Level: 400, Output: "stdout"}
 }
 
 // Log represents a log entry.
@@ -24,18 +27,19 @@ type Log struct {
 }
 
 // Logger represents a logger instance.
-type Logger struct{
+type Logger struct {
 	cnf *Config
 }
 
 // Config represents the configuration for the logger.
 type Config struct {
 	Format string // json, text
-	Level int // 100: DEBUG, 200: INFO, 300: NOTICE, 400: WARNING, 500: ERROR, 502: CRITICAL, 509: ALERT
+	Level  int    // 100: DEBUG, 200: INFO, 300: NOTICE, 400: WARNING, 500: ERROR, 502: CRITICAL, 509: ALERT
+	Output string // stdout, <filepath>, none
 }
 
 // New creates a new logger instance with the given configuration.
-func New(config *Config) *Logger{
+func NewLogger(config *Config) *Logger {
 	var logger = new(Logger)
 	if config != nil {
 		if config.Format == "" {
@@ -45,12 +49,28 @@ func New(config *Config) *Logger{
 		if config.Level == 0 {
 			config.Level = defaultConfig().Level
 		}
+		if config.Output == "" {
+			config.Output = defaultConfig().Output
+		}
 	} else {
 		config = defaultConfig()
 	}
 
 	logger.cnf = config
-	
+
+	if logger.cnf.Output != "stdout" && logger.cnf.Output != "none" {
+		extension := filepath.Ext(logger.cnf.Output)
+		if extension == ".log" || extension == ".txt" || extension == ".json" {
+			log.SetOutput(&lumberjack.Logger{
+				Filename:   logger.cnf.Output,
+				MaxSize:    5, // megabytes
+				MaxBackups: 100,
+				MaxAge:     30, // days
+			})
+			log.SetFlags(0)
+		}
+	}
+
 	return logger
 }
 
@@ -68,7 +88,7 @@ func (l Log) ToString() string {
 // LogF logs a formatted message with the given status code and arguments.
 // It returns the log entry.
 func (l Logger) LogF(statusCode int, format string, args ...any) *Log {
-	var log = new(Log)
+	var newLog = new(Log)
 
 	var severity string
 
@@ -92,28 +112,32 @@ func (l Logger) LogF(statusCode int, format string, args ...any) *Log {
 
 	_, path, line, _ := runtime.Caller(2)
 
-	log.UUID = uuid.NewString()
-	log.Status = statusCode
-	log.Timestamp = time.Now().UTC().Format(time.RFC3339Nano)
-	log.Path = path
-	log.Line = line
-	log.Message = fmt.Sprintf(format, args...)
-	log.Severity = severity
+	newLog.UUID = uuid.NewString()
+	newLog.Status = statusCode
+	newLog.Path = path
+	newLog.Line = line
+	newLog.Message = fmt.Sprintf(format, args...)
+	newLog.Severity = severity
+	newLog.Timestamp = time.Now().UTC().Format(time.RFC3339Nano)
 
-	if statusCode >=  l.cnf.Level{
+	if statusCode >= l.cnf.Level {
 		var final string
 		switch l.cnf.Format {
-			case "json":
-				final = log.ToJSON()
-			case "text":{
-				final = log.ToString()
+		case "json":
+			final = newLog.ToJSON()
+		case "text":
+			{
+				final = newLog.ToString()
 			}
 		}
-
-		fmt.Println(final)
+		if l.cnf.Output == "stdout" {
+			fmt.Println(final)
+		} else if l.cnf.Output != "" && l.cnf.Output != "none" && l.cnf.Output != "stdout" {
+			log.Println(final)
+		}
 	}
 
-	return log
+	return newLog
 }
 
 // ErrorF logs an error message with the given status code and arguments.
