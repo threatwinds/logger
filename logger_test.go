@@ -109,3 +109,20 @@ func TestLogFileCreation(t *testing.T) {
 	// Clean up
 	os.Remove("test.log")
 }
+
+func TestInfo(t *testing.T) {
+	config := &logger.Config{Format: "json", Level: 400}
+	logger := logger.NewLogger(config)
+
+	log := logger.Info("Test info message")
+
+	if log == nil {
+		t.Error("Log should not be nil")
+	} else if log.Severity != "INFO" {
+		t.Errorf("Expected severity to be INFO, got %s", log.Severity)
+	}
+
+	if log.Status != 200 {
+		t.Errorf("Expected status code to be 200, got %d", log.Status)
+	}
+}

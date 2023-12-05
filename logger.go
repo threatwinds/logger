@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"runtime"
 	"time"
@@ -150,4 +151,15 @@ func (l Logger) ErrorF(statusCode int, format string, args ...any) *Error {
 	}
 
 	return &Error{UUID: log.UUID, Status: statusCode, Message: log.Message}
+}
+
+// ErrorFatal logs an error message and exits the program
+func (l Logger) ErrorFatal(format string, args ...any) {
+	l.LogF(501, format, args...)
+	os.Exit(1)
+}
+
+// Info logs an info message with the given arguments.
+func (l Logger) Info(format string, args ...any) *Log {
+	return l.LogF(200, format, args...)
 }
