@@ -6,7 +6,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -34,7 +36,7 @@ type Logger struct {
 
 // Config represents the configuration for the logger.
 type Config struct {
-	Format string // json, text
+	Format string // json, text, csv
 	Level  int    // 100: DEBUG, 200: INFO, 300: NOTICE, 400: WARNING, 500: ERROR, 502: CRITICAL, 509: ALERT
 	Output string // stdout, <filepath>, none
 }
@@ -61,7 +63,7 @@ func NewLogger(config *Config) *Logger {
 
 	if logger.cnf.Output != "stdout" && logger.cnf.Output != "none" {
 		extension := filepath.Ext(logger.cnf.Output)
-		if extension == ".log" || extension == ".txt" || extension == ".json" {
+		if extension == ".log" || extension == ".txt" || extension == ".json" || extension == ".csv" {
 			log.SetOutput(&lumberjack.Logger{
 				Filename:   logger.cnf.Output,
 				MaxSize:    5, // megabytes
@@ -127,9 +129,9 @@ func (l Logger) LogF(statusCode int, format string, args ...any) *Log {
 		case "json":
 			final = newLog.ToJSON()
 		case "text":
-			{
-				final = newLog.ToString()
-			}
+			final = newLog.ToString()
+		case "csv":
+			final = newLog.Message
 		}
 		if l.cnf.Output == "stdout" {
 			fmt.Println(final)
@@ -151,6 +153,49 @@ func (l Logger) ErrorF(statusCode int, format string, args ...any) *Error {
 	}
 
 	return &Error{UUID: log.UUID, Status: statusCode, Message: log.Message}
+}
+
+// CsvLog logs a CSV record with the given data.
+func (l Logger) CsvLog(data interface{}) error {
+	if l.cnf.Format != "csv" {
+		return fmt.Errorf("logger format is not csv")
+	}
+
+	val := reflect.ValueOf(data)
+	if val.Kind() != reflect.Ptr || val.Elem().Kind() != reflect.Struct {
+		return fmt.Errorf("data is not a pointer to a struct")
+	}
+
+	val = val.Elem()
+
+	var headers []string
+	var values []string
+	typeOfT := val.Type()
+
+	for i := 0; i < val.NumField(); i++ {
+		headers = append(headers, typeOfT.Field(i).Name)
+		values = append(values, fmt.Sprintf("%s", val.Field(i).Interface()))
+	}
+
+	if l.cnf.Output != "stdout" && l.cnf.Output != "none" {
+		if info, err := os.Stat(l.cnf.Output); err == nil {
+			if info.Size() == 0 {
+				l.LogF(200, "%s", strings.Join(headers, ","))
+			}
+		} else if os.IsNotExist(err) {
+			l.LogF(200, "%s", strings.Join(headers, ","))
+		} else {
+			return fmt.Errorf("failed to get file info: %v", err)
+		}
+	}
+
+	log := l.LogF(200, "%s", strings.Join(values, ","))
+
+	if log.Status >= 500 {
+		return fmt.Errorf("internal error")
+	}
+
+	return nil
 }
 
 // ErrorFatal logs an error message and exits the program
