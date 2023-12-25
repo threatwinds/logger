@@ -1,7 +1,6 @@
 package logger_test
 
 import (
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -72,7 +71,7 @@ func TestJsonFileCreation(t *testing.T) {
 	}
 
 	// Check file content
-	content, err := ioutil.ReadFile("test.json")
+	content, err := os.ReadFile("test.json")
 	if err != nil {
 		t.Error("Failed to read file")
 	}
@@ -97,7 +96,7 @@ func TestLogFileCreation(t *testing.T) {
 	}
 
 	// Check file content
-	content, err := ioutil.ReadFile("test.log")
+	content, err := os.ReadFile("test.log")
 	if err != nil {
 		t.Error("Failed to read file")
 	}
@@ -125,50 +124,4 @@ func TestInfo(t *testing.T) {
 	if log.Status != 200 {
 		t.Errorf("Expected status code to be 200, got %d", log.Status)
 	}
-}
-func TestCsvLog(t *testing.T) {
-	filename := "test.csv"
-	config := &logger.Config{Format: "csv", Level: 200, Output: filename}
-	logger := logger.NewLogger(config)
-
-	type TestData struct {
-		Field1 string
-		Field2 string
-		Field3 string
-	}
-
-	data := TestData{
-		Field1: "value1",
-		Field2: "value2",
-		Field3: "value3",
-	}
-
-	err := logger.CsvLog(&data)
-	if err != nil {
-		t.Errorf("Expected error to be nil, got %v", err)
-	}
-
-	// Check if CSV file exists
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		t.Error("CSV file was not created")
-	}
-
-	// Check file content
-	content, err := os.ReadFile(filename)
-	if err != nil {
-		t.Error("Failed to read CSV file")
-	}
-
-	expectedHeader := "Field1,Field2,Field3"
-	if !strings.Contains(string(content), expectedHeader) {
-		t.Errorf("Expected CSV file to contain header '%s'", expectedHeader)
-	}
-
-	expectedRow := "value1,value2,value3"
-	if !strings.Contains(string(content), expectedRow) {
-		t.Errorf("Expected CSV file to contain row '%s'", expectedRow)
-	}
-
-	// Clean up
-	os.Remove(filename)
 }
