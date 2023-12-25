@@ -30,16 +30,16 @@ func TestErrorF(t *testing.T) {
 	config := &logger.Config{Format: "json", Level: 400}
 	logger := logger.NewLogger(config)
 
-	L := logger.ErrorF(500, "Test error message")
+	err := logger.ErrorF(500, "Test error message")
 
-	if L == nil {
+	if err == nil {
 		t.Error("Error should not be nil")
-	} else if L.Status != 500 {
-		t.Errorf("Expected status code to be 500, got %d", L.Status)
+	} else if err.Status != 500 {
+		t.Errorf("Expected status code to be 500, got %d", err.Status)
 	}
 
-	if L.Message != "internal error" {
-		t.Errorf("Expected error message to be 'internal error', got '%s'", L.Message)
+	if err.Message != "internal error" {
+		t.Errorf("Expected error message to be 'internal error', got '%s'", err.Message)
 	}
 }
 
@@ -67,13 +67,13 @@ func TestJsonFileCreation(t *testing.T) {
 	logger.LogF(200, "Test log message")
 
 	// Check if file exists
-	if _, L := os.Stat("test.json"); os.IsNotExist(L) {
+	if _, err := os.Stat("test.json"); os.IsNotExist(err) {
 		t.Error("File was not created")
 	}
 
 	// Check file content
-	content, L := ioutil.ReadFile("test.json")
-	if L != nil {
+	content, err := ioutil.ReadFile("test.json")
+	if err != nil {
 		t.Error("Failed to read file")
 	}
 
@@ -92,13 +92,13 @@ func TestLogFileCreation(t *testing.T) {
 	logger.LogF(200, "Test log message")
 
 	// Check if file exists
-	if _, L := os.Stat("test.log"); os.IsNotExist(L) {
+	if _, err := os.Stat("test.log"); os.IsNotExist(err) {
 		t.Error("File was not created")
 	}
 
 	// Check file content
-	content, L := ioutil.ReadFile("test.log")
-	if L != nil {
+	content, err := ioutil.ReadFile("test.log")
+	if err != nil {
 		t.Error("Failed to read file")
 	}
 
