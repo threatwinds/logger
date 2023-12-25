@@ -1,7 +1,6 @@
 package logger_test
 
 import (
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -72,7 +71,7 @@ func TestJsonFileCreation(t *testing.T) {
 	}
 
 	// Check file content
-	content, err := ioutil.ReadFile("test.json")
+	content, err := os.ReadFile("test.json")
 	if err != nil {
 		t.Error("Failed to read file")
 	}
@@ -97,7 +96,7 @@ func TestLogFileCreation(t *testing.T) {
 	}
 
 	// Check file content
-	content, err := ioutil.ReadFile("test.log")
+	content, err := os.ReadFile("test.log")
 	if err != nil {
 		t.Error("Failed to read file")
 	}

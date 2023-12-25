@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -34,9 +34,9 @@ type Logger struct {
 
 // Config represents the configuration for the logger.
 type Config struct {
-	Format string // json, text
+	Format string // json, text, csv
 	Level  int    // 100: DEBUG, 200: INFO, 300: NOTICE, 400: WARNING, 500: ERROR, 502: CRITICAL, 509: ALERT
-	Output string // stdout, <filepath>, none
+	Output string // stdout, <filepath>
 }
 
 // New creates a new logger instance with the given configuration.
@@ -50,6 +50,7 @@ func NewLogger(config *Config) *Logger {
 		if config.Level == 0 {
 			config.Level = defaultConfig().Level
 		}
+
 		if config.Output == "" {
 			config.Output = defaultConfig().Output
 		}
@@ -59,17 +60,15 @@ func NewLogger(config *Config) *Logger {
 
 	logger.cnf = config
 
-	if logger.cnf.Output != "stdout" && logger.cnf.Output != "none" {
-		extension := filepath.Ext(logger.cnf.Output)
-		if extension == ".log" || extension == ".txt" || extension == ".json" {
-			log.SetOutput(&lumberjack.Logger{
-				Filename:   logger.cnf.Output,
-				MaxSize:    5, // megabytes
-				MaxBackups: 100,
-				MaxAge:     30, // days
-			})
-			log.SetFlags(0)
-		}
+	if logger.cnf.Output != "stdout" {
+		log.SetOutput(&lumberjack.Logger{
+			Filename:   logger.cnf.Output,
+			MaxSize:    5, // megabytes
+			MaxBackups: 100,
+			MaxAge:     30, // days
+		})
+
+		log.SetFlags(0)
 	}
 
 	return logger
@@ -83,7 +82,12 @@ func (l Log) ToJSON() string {
 
 // ToString converts the log entry to a string format.
 func (l Log) ToString() string {
-	return fmt.Sprintf("%s %s %s %s %d %s", l.Timestamp, l.Severity, l.UUID, l.Path, l.Line, l.Message)
+	return strings.Join([]string{l.Timestamp, l.Severity, l.UUID, l.Path, fmt.Sprint(l.Line), l.Message}, " ")
+}
+
+// ToCsv converts the log entry to a CSV format.
+func (l Log) ToCsv() string {
+	return strings.Join([]string{l.Timestamp, l.Severity, l.UUID, l.Path, fmt.Sprint(l.Line), l.Message}, ",")
 }
 
 // LogF logs a formatted message with the given status code and arguments.
@@ -127,13 +131,15 @@ func (l Logger) LogF(statusCode int, format string, args ...any) *Log {
 		case "json":
 			final = newLog.ToJSON()
 		case "text":
-			{
-				final = newLog.ToString()
-			}
+			final = newLog.ToString()
+		case "csv":
+			final = newLog.ToCsv()
 		}
-		if l.cnf.Output == "stdout" {
+
+		switch l.cnf.Output {
+		case "stdout":
 			fmt.Println(final)
-		} else if l.cnf.Output != "" && l.cnf.Output != "none" && l.cnf.Output != "stdout" {
+		default:
 			log.Println(final)
 		}
 	}
