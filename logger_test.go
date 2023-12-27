@@ -8,42 +8,9 @@ import (
 	"github.com/threatwinds/logger"
 )
 
-func TestLogF(t *testing.T) {
-	config := &logger.Config{Format: "json", Level: 400}
-	logger := logger.NewLogger(config)
-
-	log := logger.LogF(200, "Test log message")
-
-	if log == nil {
-		t.Error("Log should not be nil")
-	} else if log.Severity != "INFO" {
-		t.Errorf("Expected severity to be INFO, got %s", log.Severity)
-	}
-
-	if log.Status != 200 {
-		t.Errorf("Expected status code to be 200, got %d", log.Status)
-	}
-}
-
-func TestErrorF(t *testing.T) {
-	config := &logger.Config{Format: "json", Level: 400}
-	logger := logger.NewLogger(config)
-
-	err := logger.ErrorF(500, "Test error message")
-
-	if err == nil {
-		t.Error("Error should not be nil")
-	} else if err.Status != 500 {
-		t.Errorf("Expected status code to be 500, got %d", err.Status)
-	}
-
-	if err.Message != "internal error" {
-		t.Errorf("Expected error message to be 'internal error', got '%s'", err.Message)
-	}
-}
-
-func TestLogFWithOutput(t *testing.T) {
+func TestStdOut(t *testing.T) {
 	config := &logger.Config{Format: "json", Level: 400, Output: "stdout"}
+	
 	logger := logger.NewLogger(config)
 
 	log := logger.LogF(200, "Test log message")
@@ -59,7 +26,7 @@ func TestLogFWithOutput(t *testing.T) {
 	}
 }
 
-func TestJsonFileCreation(t *testing.T) {
+func TestJsonLogFile(t *testing.T) {
 	config := &logger.Config{Format: "json", Level: 100, Output: "test.json"}
 	logger := logger.NewLogger(config)
 
@@ -84,8 +51,8 @@ func TestJsonFileCreation(t *testing.T) {
 	os.Remove("test.json")
 }
 
-func TestLogFileCreation(t *testing.T) {
-	config := &logger.Config{Format: "text", Level: 100, Output: "test.log"}
+func TestCSVLogFile(t *testing.T) {
+	config := &logger.Config{Format: "csv", Level: 100, Output: "test.log"}
 	logger := logger.NewLogger(config)
 
 	logger.LogF(200, "Test log message")

@@ -1,6 +1,8 @@
 package logger
 
 import (
+	"bytes"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -87,7 +89,21 @@ func (l Log) ToString() string {
 
 // ToCsv converts the log entry to a CSV format.
 func (l Log) ToCsv() string {
-	return strings.Join([]string{l.Timestamp, l.Severity, l.UUID, l.Path, fmt.Sprint(l.Line), l.Message}, ",")
+	b := new(bytes.Buffer)
+	w := csv.NewWriter(b)
+
+	err := w.Write([]string{l.Timestamp, l.Severity, l.UUID, l.Path, fmt.Sprint(l.Line), l.Message})
+	if err != nil {
+		return ""
+	}
+
+	w.Flush()
+
+	if err := w.Error(); err != nil{
+		return ""
+	}
+
+	return strings.TrimRight(b.String(), "\n")
 }
 
 // LogF logs a formatted message with the given status code and arguments.
@@ -159,8 +175,8 @@ func (l Logger) ErrorF(statusCode int, format string, args ...any) *Error {
 	return &Error{UUID: log.UUID, Status: statusCode, Message: log.Message}
 }
 
-// ErrorFatal logs an error message and exits the program
-func (l Logger) ErrorFatal(format string, args ...any) {
+// Fatal logs an error message and exits the program
+func (l Logger) Fatal(format string, args ...any) {
 	l.LogF(501, format, args...)
 	os.Exit(1)
 }
