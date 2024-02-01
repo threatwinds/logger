@@ -1,5 +1,7 @@
 package logger
 
+import "time"
+
 func (l *Logger) RunWithRetries(status int, f func() error) *Error {
 	var retries = 0
 	for {
@@ -10,6 +12,7 @@ func (l *Logger) RunWithRetries(status int, f func() error) *Error {
 			if retries >= l.cnf.Retries {
 				return e
 			}
+			time.Sleep(l.cnf.Wait)
 		} else {
 			return nil
 		}
