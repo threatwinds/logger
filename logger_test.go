@@ -1,6 +1,8 @@
 package logger_test
 
 import (
+	"fmt"
+	"net/http"
 	"os"
 	"strings"
 	"testing"
@@ -10,7 +12,7 @@ import (
 
 func TestStdOut(t *testing.T) {
 	config := &logger.Config{Format: "json", Level: 400, Output: "stdout"}
-	
+
 	logger := logger.NewLogger(config)
 
 	log := logger.LogF(200, "Test log message")
@@ -93,25 +95,22 @@ func TestInfo(t *testing.T) {
 	}
 }
 
-
 func TestRunWithRetries(t *testing.T) {
 	config := &logger.Config{Format: "json", Level: 400}
 	logger := logger.NewLogger(config)
 
 	var result int
 
-	
-
-	err := logger.RunWithRetries(func() *logger.Error{
-		result+=3
-		return nil
+	err := logger.RunWithRetries(http.StatusInternalServerError, func() error {
+		result += 3
+		return fmt.Errorf("hello")
 	})
 
-	if err != nil {
-		t.Error("err should be nil")
+	if err == nil {
+		t.Error("err should not be nil")
 	}
 
-	if result != 3 {
-		t.Errorf("Expected 3, got %d", result)
+	if result != 15 {
+		t.Errorf("Expected 15, got %d", result)
 	}
 }
