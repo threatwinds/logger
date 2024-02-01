@@ -43,7 +43,7 @@ type Config struct {
 	Wait    time.Duration
 }
 
-// New creates a new logger instance with the given configuration.
+// NewLogger creates a new logger instance with the given configuration.
 func NewLogger(config *Config) *Logger {
 	var logger = new(Logger)
 	if config != nil {

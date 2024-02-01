@@ -2,6 +2,7 @@ package logger
 
 import "time"
 
+// RunWithRetries executes a function and retries if any error.
 func (l *Logger) RunWithRetries(status int, f func() error) *Error {
 	var retries = 0
 	for {
