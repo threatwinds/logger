@@ -7,4 +7,4 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
-retract [v1.0.0, v1.0.7]
+retract v1.0.8
