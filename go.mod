@@ -6,3 +6,5 @@ require (
 	github.com/google/uuid v1.4.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
+
+retract [v1.0.0, v1.0.7]
