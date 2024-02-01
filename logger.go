@@ -17,7 +17,7 @@ import (
 
 // defaultConfig returns the default configuration for the logger.
 func defaultConfig() *Config {
-	return &Config{Format: "json", Level: 400, Output: "stdout"}
+	return &Config{Format: "json", Level: 400, Output: "stdout", Retries: 5, Wait: 1 * time.Second}
 }
 
 // Log represents a log entry.
@@ -36,9 +36,11 @@ type Logger struct {
 
 // Config represents the configuration for the logger.
 type Config struct {
-	Format string // json, text, csv
-	Level  int    // 100: DEBUG, 200: INFO, 300: NOTICE, 400: WARNING, 500: ERROR, 502: CRITICAL, 509: ALERT
-	Output string // stdout, <filepath>
+	Format  string // json, text, csv
+	Level   int    // 100: DEBUG, 200: INFO, 300: NOTICE, 400: WARNING, 500: ERROR, 502: CRITICAL, 509: ALERT
+	Output  string // stdout, <filepath>
+	Retries int
+	Wait    time.Duration
 }
 
 // New creates a new logger instance with the given configuration.
@@ -55,6 +57,14 @@ func NewLogger(config *Config) *Logger {
 
 		if config.Output == "" {
 			config.Output = defaultConfig().Output
+		}
+
+		if config.Retries == 0 {
+			config.Retries = defaultConfig().Retries
+		}
+
+		if config.Wait == 0 {
+			config.Wait = defaultConfig().Wait
 		}
 	} else {
 		config = defaultConfig()
@@ -99,7 +109,7 @@ func (l Log) ToCsv() string {
 
 	w.Flush()
 
-	if err := w.Error(); err != nil{
+	if err := w.Error(); err != nil {
 		return ""
 	}
 

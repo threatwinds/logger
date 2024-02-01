@@ -92,3 +92,26 @@ func TestInfo(t *testing.T) {
 		t.Errorf("Expected status code to be 200, got %d", log.Status)
 	}
 }
+
+
+func TestRunWithRetries(t *testing.T) {
+	config := &logger.Config{Format: "json", Level: 400}
+	logger := logger.NewLogger(config)
+
+	var result int
+
+	
+
+	err := logger.RunWithRetries(func() *logger.Error{
+		result+=3
+		return nil
+	})
+
+	if err != nil {
+		t.Error("err should be nil")
+	}
+
+	if result != 3 {
+		t.Errorf("Expected 3, got %d", result)
+	}
+}
