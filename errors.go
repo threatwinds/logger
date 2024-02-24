@@ -6,7 +6,7 @@ import "strings"
 type Error struct {
 	UUID    string `json:"uuid"`
 	Status  int    `json:"-"`
-	Message string `json:"error"`
+	Message string `json:"message"`
 }
 
 // Is checks if the given error contains any of the specified substrings.
