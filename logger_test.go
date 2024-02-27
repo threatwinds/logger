@@ -2,7 +2,6 @@ package logger_test
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 	"strings"
 	"testing"
@@ -96,15 +95,15 @@ func TestInfo(t *testing.T) {
 }
 
 func TestRunWithRetries(t *testing.T) {
-	config := &logger.Config{Format: "json", Level: 400}
+	config := &logger.Config{Format: "json", Level: 400, StatusMap: map[int][]string{400: {"hella"}}, Retries: 5, Wait: 1}
 	logger := logger.NewLogger(config)
 
 	var result int
 
-	err := logger.RunWithRetries(map[int][]string{http.StatusBadGateway: {"hella", "hello"}, http.StatusAccepted: {"helle"}}, func() error {
+	err := logger.RunWithRetries(func() error {
 		result += 3
-		return fmt.Errorf("hello")
-	})
+		return fmt.Errorf("hella")
+	}, "hello")
 
 	if err == nil {
 		t.Error("err should not be nil")

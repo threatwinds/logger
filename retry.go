@@ -1,18 +1,29 @@
 package logger
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 // RunWithRetries executes a function and retries if any error.
-func (l *Logger) RunWithRetries(status map[int][]string, f func() error) *Error {
+func (l *Logger) RunWithRetries(f func() error, exception ...string) *Error {
 	var retries = 0
 	for {
 		err := f()
 		if err != nil {
 			retries++
-			e := l.ErrorF(status, err.Error())
+			e := l.ErrorF(err.Error())
+
+			for _, ex := range exception {
+				if strings.Contains(err.Error(), ex) {
+					return e
+				}
+			}
+			
 			if retries >= l.cnf.Retries {
 				return e
 			}
+
 			time.Sleep(l.cnf.Wait)
 		} else {
 			return nil

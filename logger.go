@@ -17,7 +17,14 @@ import (
 
 // defaultConfig returns the default configuration for the logger.
 func defaultConfig() *Config {
-	return &Config{Format: "json", Level: 400, Output: "stdout", Retries: 5, Wait: 1 * time.Second}
+	return &Config{
+		Format:    "json",
+		Level:     400,
+		Output:    "stdout",
+		Retries:   5,
+		Wait:      1 * time.Second,
+		StatusMap: map[int][]string{},
+	}
 }
 
 // Log represents a log entry.
@@ -36,11 +43,12 @@ type Logger struct {
 
 // Config represents the configuration for the logger.
 type Config struct {
-	Format  string // json, text, csv
-	Level   int    // 100: DEBUG, 200: INFO, 300: NOTICE, 400: WARNING, 500: ERROR, 502: CRITICAL, 509: ALERT
-	Output  string // stdout, <filepath>
-	Retries int
-	Wait    time.Duration
+	Format    string        // json, text, csv
+	Level     int           // 100: DEBUG, 200: INFO, 300: NOTICE, 400: WARNING, 500: ERROR, 502: CRITICAL, 509: ALERT
+	Output    string        // stdout, <filepath>
+	Retries   int           // number of retries
+	Wait      time.Duration // wait time between retries
+	StatusMap map[int][]string
 }
 
 // NewLogger creates a new logger instance with the given configuration.
@@ -175,10 +183,10 @@ func (l Logger) LogF(statusCode int, format string, args ...any) *Log {
 
 // ErrorF logs an error message with the given status code and arguments.
 // It returns an error object.
-func (l Logger) ErrorF(status map[int][]string, format string, args ...any) *Error {
+func (l Logger) ErrorF(format string, args ...any) *Error {
 	var statusCode int = 500
 
-	for k, v := range status {
+	for k, v := range l.cnf.StatusMap {
 		for _, msg := range v {
 			if strings.Contains(fmt.Sprintf(format, args...), msg) {
 				statusCode = k
@@ -186,7 +194,7 @@ func (l Logger) ErrorF(status map[int][]string, format string, args ...any) *Err
 			}
 		}
 	}
-	
+
 	var log = l.LogF(statusCode, format, args...)
 
 	if log.Status >= 500 {
