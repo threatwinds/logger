@@ -175,7 +175,18 @@ func (l Logger) LogF(statusCode int, format string, args ...any) *Log {
 
 // ErrorF logs an error message with the given status code and arguments.
 // It returns an error object.
-func (l Logger) ErrorF(statusCode int, format string, args ...any) *Error {
+func (l Logger) ErrorF(status map[int][]string, format string, args ...any) *Error {
+	var statusCode int = 500
+
+	for k, v := range status {
+		for _, msg := range v {
+			if strings.Contains(fmt.Sprintf(format, args...), msg) {
+				statusCode = k
+				break
+			}
+		}
+	}
+	
 	var log = l.LogF(statusCode, format, args...)
 
 	if log.Status >= 500 {

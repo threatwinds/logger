@@ -101,7 +101,7 @@ func TestRunWithRetries(t *testing.T) {
 
 	var result int
 
-	err := logger.RunWithRetries(http.StatusInternalServerError, func() error {
+	err := logger.RunWithRetries(map[int][]string{http.StatusBadGateway: {"hella", "hello"}, http.StatusAccepted: {"helle"}}, func() error {
 		result += 3
 		return fmt.Errorf("hello")
 	})
