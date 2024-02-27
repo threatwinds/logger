@@ -43,12 +43,12 @@ type Logger struct {
 
 // Config represents the configuration for the logger.
 type Config struct {
-	Format    string        // json, text, csv
-	Level     int           // 100: DEBUG, 200: INFO, 300: NOTICE, 400: WARNING, 500: ERROR, 502: CRITICAL, 509: ALERT
-	Output    string        // stdout, <filepath>
-	Retries   int           // number of retries
-	Wait      time.Duration // wait time between retries
-	StatusMap map[int][]string
+	Format    string           // json, text, csv
+	Level     int              // 100: DEBUG, 200: INFO, 300: NOTICE, 400: WARNING, 500: ERROR, 502: CRITICAL, 509: ALERT
+	Output    string           // stdout, <filepath>
+	Retries   int              // number of retries
+	Wait      time.Duration    // wait time between retries
+	StatusMap map[int][]string // status code to message map
 }
 
 // NewLogger creates a new logger instance with the given configuration.
