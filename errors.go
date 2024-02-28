@@ -5,7 +5,7 @@ import "strings"
 // Error represents an error with a UUID, status, and message.
 type Error struct {
 	UUID    string `json:"uuid"`
-	Status  int    `json:"-"`
+	Status  int    `json:"status"`
 	Message string `json:"message"`
 }
 
