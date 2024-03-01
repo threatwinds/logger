@@ -4,8 +4,8 @@ import (
 	"time"
 )
 
-// RunWithRetries executes a function and retries if any error.
-func (l *Logger) RunWithRetries(f func() error, exception ...string) error {
+// Retry executes a function and retries if any error.
+func (l *Logger) Retry(f func() error, exception ...string) error {
 	var retries = 0
 	for {
 		err := f()
@@ -27,8 +27,8 @@ func (l *Logger) RunWithRetries(f func() error, exception ...string) error {
 	}
 }
 
-// RunWithInfRetries executes a function and retries infinitely if any error.
-func (l *Logger) RunWithInfRetries(f func() error, exception ...string) error {
+// InfiniteRetry executes a function and retries infinitely if any error.
+func (l *Logger) InfiniteRetry(f func() error, exception ...string) error {
 	for {
 		err := f()
 		if err != nil {

@@ -100,7 +100,7 @@ func TestRunWithRetries(t *testing.T) {
 
 	var result int
 
-	err := logger.RunWithRetries(func() error {
+	err := logger.Retry(func() error {
 		result += 3
 		return fmt.Errorf("hella")
 	}, "hello")
