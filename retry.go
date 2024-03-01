@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"strings"
 	"time"
 )
 
@@ -13,12 +12,10 @@ func (l *Logger) RunWithRetries(f func() error, exception ...string) error {
 		if err != nil {
 			retries++
 
-			for _, ex := range exception {
-				if strings.Contains(err.Error(), ex) {
-					return err
-				}
+			if Is(err, exception...) {
+				return err
 			}
-			
+
 			if retries >= l.cnf.Retries {
 				return err
 			}
@@ -34,11 +31,9 @@ func (l *Logger) RunWithRetries(f func() error, exception ...string) error {
 func (l *Logger) RunWithInfRetries(f func() error, exception ...string) error {
 	for {
 		err := f()
-		if err != nil {			
-			for _, ex := range exception {
-				if strings.Contains(err.Error(), ex) {
-					return err
-				}
+		if err != nil {
+			if Is(err, exception...) {
+				return err
 			}
 
 			time.Sleep(l.cnf.Wait)
