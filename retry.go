@@ -6,22 +6,21 @@ import (
 )
 
 // RunWithRetries executes a function and retries if any error.
-func (l *Logger) RunWithRetries(f func() error, exception ...string) *Error {
+func (l *Logger) RunWithRetries(f func() error, exception ...string) error {
 	var retries = 0
 	for {
 		err := f()
 		if err != nil {
 			retries++
-			e := l.ErrorF(err.Error())
 
 			for _, ex := range exception {
 				if strings.Contains(err.Error(), ex) {
-					return e
+					return err
 				}
 			}
 			
 			if retries >= l.cnf.Retries {
-				return e
+				return err
 			}
 
 			time.Sleep(l.cnf.Wait)
@@ -32,16 +31,13 @@ func (l *Logger) RunWithRetries(f func() error, exception ...string) *Error {
 }
 
 // RunWithInfRetries executes a function and retries infinitely if any error.
-func (l *Logger) RunWithInfRetries(f func() error, exception ...string) *Error {
+func (l *Logger) RunWithInfRetries(f func() error, exception ...string) error {
 	for {
 		err := f()
-		if err != nil {
-			
-			e := l.ErrorF(err.Error())
-
+		if err != nil {			
 			for _, ex := range exception {
 				if strings.Contains(err.Error(), ex) {
-					return e
+					return err
 				}
 			}
 
