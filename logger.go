@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"runtime"
 	"strings"
 	"time"
@@ -124,7 +123,7 @@ func (l Log) ToCsv() string {
 	return strings.TrimRight(b.String(), "\n")
 }
 
-// LogF logs a formatted message with the given status code and arguments.
+// LogF logs a formatted message with the given status code, format and arguments.
 // It returns the log entry.
 func (l Logger) LogF(statusCode int, format string, args ...any) *Log {
 	var newLog = new(Log)
@@ -179,35 +178,6 @@ func (l Logger) LogF(statusCode int, format string, args ...any) *Log {
 	}
 
 	return newLog
-}
-
-// ErrorF logs an error message with the given status code and arguments.
-// It returns an error object.
-func (l Logger) ErrorF(format string, args ...any) *Error {
-	var statusCode int = 500
-
-	for k, v := range l.cnf.StatusMap {
-		for _, msg := range v {
-			if strings.Contains(fmt.Sprintf(format, args...), msg) {
-				statusCode = k
-				break
-			}
-		}
-	}
-
-	var log = l.LogF(statusCode, format, args...)
-
-	if log.Status >= 500 {
-		return &Error{UUID: log.UUID, Status: statusCode, Message: "internal error"}
-	}
-
-	return &Error{UUID: log.UUID, Status: statusCode, Message: log.Message}
-}
-
-// Fatal logs an error message and exits the program
-func (l Logger) Fatal(format string, args ...any) {
-	l.LogF(501, format, args...)
-	os.Exit(1)
 }
 
 // Info logs an info message with the given arguments.

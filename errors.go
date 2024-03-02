@@ -1,6 +1,10 @@
 package logger
 
-import "strings"
+import (
+	"fmt"
+	"os"
+	"strings"
+)
 
 // Error represents an error with a UUID, status, and message.
 type Error struct {
@@ -29,4 +33,33 @@ func (e *Error) Is(kargs ...string) bool {
 		}
 	}
 	return false
+}
+
+// ErrorF logs an error message with the given format and arguments.
+// It returns an error object.
+func (l Logger) ErrorF(format string, args ...any) *Error {
+	var statusCode int = 500
+
+	for k, v := range l.cnf.StatusMap {
+		for _, msg := range v {
+			if strings.Contains(fmt.Sprintf(format, args...), msg) {
+				statusCode = k
+				break
+			}
+		}
+	}
+
+	var log = l.LogF(statusCode, format, args...)
+
+	if log.Status >= 500 {
+		return &Error{UUID: log.UUID, Status: statusCode, Message: "internal error"}
+	}
+
+	return &Error{UUID: log.UUID, Status: statusCode, Message: log.Message}
+}
+
+// Fatal logs an error message and exits the program
+func (l Logger) Fatal(format string, args ...any) {
+	l.LogF(500, format, args...)
+	os.Exit(1)
 }
