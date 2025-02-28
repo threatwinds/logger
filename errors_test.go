@@ -29,12 +29,12 @@ func TestError_Is(t *testing.T) {
 	}
 
 	// Test case 1: Error message contains the specified substring
-	if !err.Is("server") {
+	if !err.IsAny("server") {
 		t.Error("Expected Is to return true")
 	}
 
 	// Test case 2: Error message does not contain the specified substring
-	if err.Is("foo") {
+	if err.IsAny("foo") {
 		t.Error("Expected Is to return false")
 	}
 }

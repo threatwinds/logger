@@ -14,7 +14,7 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-// defaultConfig returns the default configuration for the logger.
+// defaultConfig returns a pointer to the default Config instance with predefined values.
 func defaultConfig() *Config {
 	return &Config{
 		Format:    "json",
@@ -26,7 +26,7 @@ func defaultConfig() *Config {
 	}
 }
 
-// Log represents a log entry.
+// Log represents a structured log entry containing timestamp, severity, file path, line number, and error details.
 type Log struct {
 	Timestamp string `json:"timestamp"`
 	Severity  string `json:"severity"`
@@ -35,12 +35,12 @@ type Log struct {
 	Error
 }
 
-// Logger represents a logger instance.
+// Logger provides logging functionalities with configurable format, level, output, retries, and wait time.
 type Logger struct {
 	cnf *Config
 }
 
-// Config represents the configuration for the logger.
+// Config defines the configuration options for logging, including format, level, output, retries, and wait duration.
 type Config struct {
 	Format    string           // json, text, csv
 	Level     int              // 100: DEBUG, 200: INFO, 300: NOTICE, 400: WARNING, 500: ERROR, 502: CRITICAL, 509: ALERT
@@ -50,7 +50,7 @@ type Config struct {
 	StatusMap map[int][]string // status code to message map
 }
 
-// NewLogger creates a new logger instance with the given configuration.
+// NewLogger initializes and returns a new Logger instance configured with the provided Config or default values.
 func NewLogger(config *Config) *Logger {
 	var logger = new(Logger)
 	if config != nil {
@@ -93,19 +93,20 @@ func NewLogger(config *Config) *Logger {
 	return logger
 }
 
-// ToJSON converts the log entry to JSON formated string.
-func (l Log) ToJSON() string {
+// ToJSON serializes the Log struct into a JSON-formatted string and returns it.
+func (l *Log) ToJSON() string {
 	b, _ := json.Marshal(l)
 	return string(b)
 }
 
-// ToString converts the log entry to a string format.
-func (l Log) ToString() string {
+// ToString converts the Log struct into a single-line string with fields concatenated and separated by spaces.
+func (l *Log) ToString() string {
 	return strings.Join([]string{l.Timestamp, l.Severity, l.UUID, l.Path, fmt.Sprint(l.Line), l.Message}, " ")
 }
 
-// ToCsv converts the log entry to a CSV format.
-func (l Log) ToCsv() string {
+// ToCsv converts a Log instance into a CSV-formatted single-line string and returns it.
+// Returns an empty string on failure.
+func (l *Log) ToCsv() string {
 	b := new(bytes.Buffer)
 	w := csv.NewWriter(b)
 
@@ -123,9 +124,9 @@ func (l Log) ToCsv() string {
 	return strings.TrimRight(b.String(), "\n")
 }
 
-// LogF logs a formatted message with the given status code, format and arguments.
-// It returns the log entry.
-func (l Logger) LogF(statusCode int, format string, args ...any) *Log {
+// LogF logs a message with a specific status code, format string, and arguments, returning a structured Log instance.
+// Determines severity based on the status code and outputs in the configured format and destination.
+func (l *Logger) LogF(statusCode int, format string, args ...any) *Log {
 	var newLog = new(Log)
 
 	var severity string
@@ -180,7 +181,7 @@ func (l Logger) LogF(statusCode int, format string, args ...any) *Log {
 	return newLog
 }
 
-// Info logs an info message with the given arguments.
-func (l Logger) Info(format string, args ...any) *Log {
+// Info logs an informational message with a status code of 200, using formatted strings and optional arguments.
+func (l *Logger) Info(format string, args ...any) *Log {
 	return l.LogF(200, format, args...)
 }

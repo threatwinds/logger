@@ -4,15 +4,13 @@ import (
 	"time"
 )
 
-// InfiniteLoop executes a function infinitely until it returns an 
-// error that contains any of the specified substrings. 
-// It waits for the configured time between each iteration.
+// InfiniteLoop continuously executes a provided function until it produces a matching error or a specified exception.
 func (l *Logger) InfiniteLoop(f func() error, exception ...string) {
 	for {
 		err := f()
 		if err != nil {
 			if Is(err, exception...) {
-				l.ErrorF("infinite loop stopped: %s", err.Error())
+				_ = l.ErrorF("infinite loop stopped: %s", err.Error())
 				return
 			}
 		}
@@ -21,10 +19,8 @@ func (l *Logger) InfiniteLoop(f func() error, exception ...string) {
 	}
 }
 
-// Retry executes a function and retries if any error. 
-// It stops after the number of retries specified in the configuration or if 
-// the error contains any of the specified substrings.
-// It waits for the configured time between each iteration.
+// Retry executes a function repeatedly until it succeeds or the maximum retries are reached,
+// or a matching error is encountered.
 func (l *Logger) Retry(f func() error, exception ...string) error {
 	var retries = 0
 	for {
@@ -47,9 +43,8 @@ func (l *Logger) Retry(f func() error, exception ...string) error {
 	}
 }
 
-// InfiniteRetry executes a function and retries infinitely if any error. 
-// It stops if the error contains any of the specified substrings.
-// It waits for the configured time between each iteration.
+// InfiniteRetry executes a function repeatedly until it succeeds or returns an error containing specified substrings.
+// If a matching error occurs, it is returned immediately. Otherwise, it waits for a configured duration before retrying.
 func (l *Logger) InfiniteRetry(f func() error, exception ...string) error {
 	for {
 		err := f()
