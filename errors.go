@@ -2,6 +2,7 @@ package logger
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -67,4 +68,20 @@ func (l *Logger) ErrorF(format string, args ...any) *Error {
 func (l *Logger) Fatal(format string, args ...any) {
 	_ = l.LogF(500, format, args...)
 	os.Exit(1)
+}
+
+// ToError tries to cast an error to a SdkError.
+// If the error is not an SdkError, it returns nil.
+func ToError(err error) *Error {
+	if err == nil {
+		return nil
+	}
+
+	var sdkError *Error
+	switch {
+	case errors.As(err, &sdkError):
+		return err.(*Error)
+	default:
+		return nil
+	}
 }
