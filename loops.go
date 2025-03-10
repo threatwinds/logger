@@ -59,3 +59,28 @@ func (l *Logger) InfiniteRetry(f func() error, exception ...string) error {
 		}
 	}
 }
+
+// InfiniteRetryIfXError retries a function f() infinitely only if the error returned by f() matches "xError".
+// If f() returns nil (no error), the function exits successfully.
+// If f() returns an error that is different from "xError", it stops immediately and returns that error.
+//
+// Additionally, to avoid log saturation:
+// - It prints the "xError" message only ONCE, the first time it occurs.
+// - If the issue is later resolved (f() stops returning an error), it logs that the problem was fixed.
+func (l *Logger) InfiniteRetryIfXError(f func() error, exception string) error {
+	var xErrorWasLogged bool // track whether we've logged xError yet
+
+	for {
+		err := f()
+		if err != nil && Is(err, exception) {
+			if !xErrorWasLogged {
+				_ = l.ErrorF("An error occurred (%s), will keep retrying indefinitely...", err.Error())
+				xErrorWasLogged = true
+			}
+			time.Sleep(l.cnf.Wait)
+			continue
+		}
+
+		return err
+	}
+}
